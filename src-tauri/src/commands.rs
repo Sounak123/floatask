@@ -82,15 +82,16 @@ pub fn save_position(app: AppHandle, x: f64, y: f64) -> Result<(), String> {
 
 #[tauri::command]
 pub fn restore_position(app: AppHandle) -> Result<(), String> {
-    use tauri::LogicalPosition;
     let data = load_data()?;
     let window = app.get_webview_window("main").ok_or("window not found")?;
 
     if let Some(pos) = data.window_position {
+        use tauri::PhysicalPosition;
         window
-            .set_position(LogicalPosition::new(pos.x, pos.y))
+            .set_position(PhysicalPosition::new(pos.x as i32, pos.y as i32))
             .map_err(|e| e.to_string())?;
     } else {
+        use tauri::LogicalPosition;
         let monitor = window.primary_monitor().map_err(|e| e.to_string())?;
         if let Some(monitor) = monitor {
             let size = monitor.size();
