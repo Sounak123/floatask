@@ -72,6 +72,46 @@ pub fn resize_window(app: AppHandle, width: f64, height: f64) -> Result<(), Stri
         .map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+pub fn save_position(app: AppHandle, x: f64, y: f64) -> Result<(), String> {
+    let _ = app;
+    let mut data = load_data()?;
+    data.window_position = Some(WindowPosition { x, y });
+    save_data(data)
+}
+
+#[tauri::command]
+pub fn restore_position(app: AppHandle) -> Result<(), String> {
+    use tauri::LogicalPosition;
+    let data = load_data()?;
+    let window = app.get_webview_window("main").ok_or("window not found")?;
+
+    if let Some(pos) = data.window_position {
+        window
+            .set_position(LogicalPosition::new(pos.x, pos.y))
+            .map_err(|e| e.to_string())?;
+    } else {
+        let monitor = window.primary_monitor().map_err(|e| e.to_string())?;
+        if let Some(monitor) = monitor {
+            let size = monitor.size();
+            let scale = monitor.scale_factor();
+            let screen_w = size.width as f64 / scale;
+            let screen_h = size.height as f64 / scale;
+            let x = screen_w - 56.0 - 24.0;
+            let y = screen_h - 56.0 - 24.0;
+            window
+                .set_position(LogicalPosition::new(x, y))
+                .map_err(|e| e.to_string())?;
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub fn quit_app(app: AppHandle) {
+    app.exit(0);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

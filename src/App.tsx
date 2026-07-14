@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { AppData, AppMode, Task } from './types';
-import { loadData, saveData, resizeWindow } from './store';
+import { loadData, saveData, resizeWindow, savePosition, restorePosition } from './store';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { Bubble } from './components/Bubble';
 import { Card } from './components/Card';
 import { Header } from './components/Header';
@@ -41,7 +42,20 @@ export default function App() {
       const updated: AppData = { ...data, last_opened_date: today };
       setAppData(updated);
       saveData(updated);
+      restorePosition();
     });
+  }, []);
+
+  useEffect(() => {
+    let debounce: ReturnType<typeof setTimeout>;
+    const win = getCurrentWindow();
+    const unlisten = win.onMoved(({ payload }) => {
+      clearTimeout(debounce);
+      debounce = setTimeout(() => {
+        savePosition(payload.x, payload.y);
+      }, 300);
+    });
+    return () => { unlisten.then(fn => fn()); };
   }, []);
 
   const persist = useCallback((tasks: Task[]) => {

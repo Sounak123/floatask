@@ -9,6 +9,9 @@ fn main() {
             commands::load_data,
             commands::save_data,
             commands::resize_window,
+            commands::save_position,
+            commands::restore_position,
+            commands::quit_app,
         ])
         .setup(|app| {
             #[cfg(target_os = "macos")]

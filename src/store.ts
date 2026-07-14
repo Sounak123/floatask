@@ -12,3 +12,15 @@ export async function saveData(data: AppData): Promise<void> {
 export async function resizeWindow(width: number, height: number): Promise<void> {
   return invoke<void>('resize_window', { width, height });
 }
+
+export async function savePosition(x: number, y: number): Promise<void> {
+  return invoke<void>('save_position', { x, y });
+}
+
+export async function restorePosition(): Promise<void> {
+  return invoke<void>('restore_position');
+}
+
+export async function quitApp(): Promise<void> {
+  return invoke<void>('quit_app');
+}
