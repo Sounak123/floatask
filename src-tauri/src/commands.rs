@@ -73,6 +73,43 @@ pub fn resize_window(app: AppHandle, width: f64, height: f64) -> Result<(), Stri
 }
 
 #[tauri::command]
+pub fn expand_window(app: AppHandle, width: f64, height: f64) -> Result<(), String> {
+    use tauri::{LogicalPosition, LogicalSize};
+    let window = app.get_webview_window("main").ok_or("window not found")?;
+
+    // Get current position in physical pixels, convert to logical
+    let pos = window.outer_position().map_err(|e| e.to_string())?;
+    let scale = window
+        .scale_factor()
+        .map_err(|e| e.to_string())?;
+    let cur_x = pos.x as f64 / scale;
+    let cur_y = pos.y as f64 / scale;
+
+    // Get available screen area
+    let monitor = window.primary_monitor().map_err(|e| e.to_string())?;
+    let (screen_w, screen_h) = if let Some(m) = monitor {
+        let s = m.size();
+        let sc = m.scale_factor();
+        (s.width as f64 / sc, s.height as f64 / sc)
+    } else {
+        (1440.0, 900.0)
+    };
+
+    // Leave a small margin from screen edges
+    let margin = 8.0;
+    let new_x = cur_x.min(screen_w - width - margin).max(margin);
+    let new_y = cur_y.min(screen_h - height - margin).max(margin);
+
+    window
+        .set_size(LogicalSize::new(width, height))
+        .map_err(|e| e.to_string())?;
+    window
+        .set_position(LogicalPosition::new(new_x, new_y))
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
 pub fn save_position(app: AppHandle, x: f64, y: f64) -> Result<(), String> {
     let _ = app;
     let mut data = load_data()?;
@@ -97,15 +134,60 @@ pub fn restore_position(app: AppHandle) -> Result<(), String> {
             let size = monitor.size();
             let scale = monitor.scale_factor();
             let screen_w = size.width as f64 / scale;
-            let screen_h = size.height as f64 / scale;
+            // Place top-right: 24px from right, 52px from top (clears macOS menu bar)
             let x = screen_w - 56.0 - 24.0;
-            let y = screen_h - 56.0 - 24.0;
+            let y = 52.0;
             window
                 .set_position(LogicalPosition::new(x, y))
                 .map_err(|e| e.to_string())?;
         }
     }
     Ok(())
+}
+
+#[tauri::command]
+pub fn move_window_by(app: AppHandle, dx: f64, dy: f64) -> Result<(), String> {
+    use tauri::LogicalPosition;
+    let window = app.get_webview_window("main").ok_or("window not found")?;
+    let pos = window.outer_position().map_err(|e| e.to_string())?;
+    let scale = window.scale_factor().map_err(|e| e.to_string())?;
+    let new_x = pos.x as f64 / scale + dx;
+    let new_y = pos.y as f64 / scale + dy;
+    window
+        .set_position(LogicalPosition::new(new_x, new_y))
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn collapse_window(app: AppHandle, x: f64, y: f64) -> Result<(), String> {
+    use tauri::{LogicalPosition, LogicalSize};
+    let window = app.get_webview_window("main").ok_or("window not found")?;
+    window
+        .set_size(LogicalSize::new(72.0_f64, 72.0_f64))
+        .map_err(|e| e.to_string())?;
+    window
+        .set_position(LogicalPosition::new(x, y))
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn regenerate_gif(count: u32) -> Result<(), String> {
+    let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+    let project = std::path::PathBuf::from(&home)
+        .join("Documents/workspace/claude_workspace/floatask");
+    let script = project.join("scripts/make_gif.py");
+    let base   = project.join("public/goku-base.gif");
+    let out    = project.join("public/goku.gif");
+    let python = std::path::PathBuf::from("/tmp/gifenv/bin/python3");
+
+    let status = std::process::Command::new(python)
+        .arg(script).arg(count.to_string()).arg(base).arg(out)
+        .status()
+        .map_err(|e| e.to_string())?;
+
+    if status.success() { Ok(()) } else { Err("make_gif failed".into()) }
 }
 
 #[tauri::command]

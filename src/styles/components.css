@@ -1,25 +1,30 @@
-/* Bubble */
+/* Bubble — outer wrapper: positions badge, no background, no filter */
 .bubble {
   width: var(--bubble-size);
   height: var(--bubble-size);
-  border-radius: var(--radius-bubble);
-  background: var(--bg-bubble);
-  box-shadow: var(--shadow-bubble);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
   position: relative;
-  transition: transform var(--transition), opacity var(--transition);
+  cursor: pointer;
+  transition: transform var(--transition);
 }
-.bubble:hover { transform: scale(1.06); }
-.bubble:active { transform: scale(0.96); }
+.bubble:hover  { transform: scale(1.06); }
+.bubble:active { transform: scale(0.94); }
 
-.bubble-badge {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-bubble);
-  line-height: 1;
+/* Inner circle: transparent GIF clips naturally, no background needed */
+.bubble-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  background: transparent;
+}
+
+.bubble-gif {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
 }
 
 /* Card */

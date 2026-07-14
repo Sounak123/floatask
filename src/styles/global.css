@@ -6,7 +6,7 @@
 
 :root {
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-  --bubble-size: 56px;
+  --bubble-size: 72px;
   --card-width: 320px;
   --card-height: 480px;
   --card-max-height: 600px;
