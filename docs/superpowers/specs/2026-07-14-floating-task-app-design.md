@@ -32,7 +32,7 @@ The app is a single Tauri window — frameless, always-on-top — that morphs be
 2. If new day and incomplete tasks exist → frontend shows carry-over dialog
 3. User resolves dialog → lands on bubble state
 4. Click bubble → expands to card
-5. Click collapse or click away → returns to bubble
+5. Click collapse button (↙) → returns to bubble
 
 ---
 
@@ -46,7 +46,7 @@ The app is a single Tauri window — frameless, always-on-top — that morphs be
 - Expand animation: CSS scale + fade, ~200ms
 
 ### Card State
-- 320×480px rounded card, expandable up to ~600px if tasks overflow
+- 320×480px rounded card, expandable up to 600px tall if tasks overflow
 - Style: white background (light mode) / dark slate (dark mode), 16px padding, macOS system font (SF Pro)
 - Draggable via header bar only
 - Collapse button (↙) in header returns to bubble
@@ -119,7 +119,7 @@ On launch, Rust compares `lastOpenedDate` to today's date. If different and inco
 
 **Position:**
 - Default: bottom-right of primary screen, 24px margin
-- Persisted in `tasks.json` under `windowPosition`
+- Persisted in `tasks.json` under `windowPosition`, saved on drag end
 - Restored on next launch
 
 **Dragging:**
