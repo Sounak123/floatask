@@ -52,10 +52,10 @@ export default function App() {
     const unlisten = win.onMoved(({ payload }) => {
       clearTimeout(debounce);
       debounce = setTimeout(() => {
-        savePosition(payload.x, payload.y);
+        savePosition(payload.x, payload.y).catch(console.error);
       }, 300);
     });
-    return () => { unlisten.then(fn => fn()); };
+    return () => { clearTimeout(debounce); unlisten.then(fn => fn()); };
   }, []);
 
   const persist = useCallback((tasks: Task[]) => {
